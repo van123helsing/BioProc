@@ -146,9 +146,9 @@ def generate_model(program_name, output_name, n_bits, prog_alpha, prog_delta, pr
             except:
                 instr = l[0].strip()
         
-            if instr == "if" or instr=="do-while":
+            if instr == "if" or instr == "do-while" or instr == "and" or instr == "or":
                 
-                if instr == "if":
+                if instr == "if" or instr == "and" or instr == "or":
                     i_src = "i"+str(addr)
                     i_dst = "i"+str(addr+1)
                     inhibition.append(True)
@@ -160,11 +160,19 @@ def generate_model(program_name, output_name, n_bits, prog_alpha, prog_delta, pr
                 r,s  = from_i_to_RS(i_src, i_dst, n_bits = n_bits)
                 R.append(r)
                 S.append(s)
-                
-                condition.append(ops[0])
-                operands.add(ops[0])
-                instr = ops[1]    
-                ops = ops[2:]
+
+                if instr == "if" or instr == "do-while":
+                    condition.append(ops[0])
+                    operands.add(ops[0])
+                    instr = ops[1]
+                    ops = ops[2:]
+                else:
+                    c = 0 if instr == "or"  else 1
+                    condition.append((l[0].split()[1], l[1].split()[0], c))
+                    operands.add(l[0].split()[1])
+                    operands.add(l[1].split()[0])
+                    instr = l[1].split()[1]
+                    ops = l[1].split()[2:]+l[2:]
             elif instr == "while":
                 # preverim, ce je izpolnjen pogoj, ce ni skocim naprej
                 i_src = "i"+str(addr)
@@ -291,7 +299,11 @@ def generate_model(program_name, output_name, n_bits, prog_alpha, prog_delta, pr
     #print(R,S)
     for i in range(len(condition)):
         if condition[i]:
-            code.append("\tcond"+str(i)+"="+condition[i]+"\n")
+            if type(condition[i]) is tuple:
+                code.append("\tcond"+str(i)+"="+condition[i][0]+"\n")
+                code.append("\tcond"+str(i)+"="+condition[i][1]+"\n")
+            else:
+                code.append("\tcond" + str(i) + "=" + condition[i] + "\n")
 
 
 
@@ -299,7 +311,8 @@ def generate_model(program_name, output_name, n_bits, prog_alpha, prog_delta, pr
         str_R = "\tRESET"+str(j)+"="
         str_S = "\tSET"+str(j)+"="
         str_R_inputs = ""
-        str_S_inputs = ""        
+        str_S_inputs = ""
+        and_or_flag = 1
         for i in range(len(condition)):
             cond = condition[i]
             inh = inhibition[i]
@@ -313,10 +326,19 @@ def generate_model(program_name, output_name, n_bits, prog_alpha, prog_delta, pr
             else:
                 if inh:
                     #inhibition
-                    if r:
-                        str_R_inputs += "inhibition("+r+", cond"+str(i)+", KD_cond),"
-                    if s:
-                        str_S_inputs += "inhibition("+s+", cond"+str(i)+", KD_cond),"
+                    if type(cond) is tuple:
+                        if r:
+                            str_R_inputs += "inhibition(" + r + ","+ cond[0]  + ", KD_cond),"
+                            str_R_inputs += "inhibition(" + r + ","+ cond[1]  + ", KD_cond),"
+                        if s:
+                            str_S_inputs += "inhibition(" + s + ","+ cond[0]  + ", KD_cond),"
+                            str_S_inputs += "inhibition(" + s + ","+ cond[1]  + ", KD_cond),"
+                        and_or_flag = cond[2]
+                    else:
+                        if r:
+                            str_R_inputs += "inhibition("+r+", cond"+str(i)+", KD_cond),"
+                        if s:
+                            str_S_inputs += "inhibition("+s+", cond"+str(i)+", KD_cond),"
                 else:
                     #induction
                     if r:
@@ -328,11 +350,13 @@ def generate_model(program_name, output_name, n_bits, prog_alpha, prog_delta, pr
 
 
         if str_R_inputs:
-            str_R += "max(("+str_R_inputs+"))"
+            c = "min" if and_or_flag == 0 else "max"
+            str_R += (c+"(("+str_R_inputs+"))")
         else:
             str_R += "0"
         if str_S_inputs:
-            str_S += "max(("+str_S_inputs+"))"
+            c = "min" if and_or_flag == 0 else "max"
+            str_S += (c+"(("+str_S_inputs+"))")
         else:
             str_S += "0"
         
@@ -436,13 +460,13 @@ def generate_model(program_name, output_name, n_bits, prog_alpha, prog_delta, pr
 ####################
 
 if __name__ == '__main__':
-    n_bits = 3
-    program_name = "programs\\program_if.txt"
+    n_bits = 4
+    program_name = "programs\\test.txt"
 
     prog_alpha = 10
-    prog_delta = 0.01
+    prog_delta = 0.1
     prog_n = 2
     prog_Kd = 10
 
-    generate_model(program_name, "model3", n_bits, prog_alpha, prog_delta, prog_n, prog_Kd)
+    generate_model(program_name, "test", n_bits, prog_alpha, prog_delta, prog_n, prog_Kd)
 

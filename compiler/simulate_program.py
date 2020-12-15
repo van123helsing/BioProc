@@ -1,5 +1,5 @@
-from bioproc.hill_functions import *
-from generate_model import generate_model
+from compiler.bioproc.hill_functions import *
+from compiler.generate_model import generate_model
 import matplotlib.pyplot as plt
 from scipy.integrate import odeint
 import numpy as np
@@ -117,10 +117,10 @@ if __name__ == '__main__':
 
     # simulation parameters
 
-    t_end = 200
+    t_end = 160
     N = 1000
 
-    n_bits = 3
+    n_bits = 4
 
     plot_ops = True
 
@@ -152,9 +152,9 @@ if __name__ == '__main__':
     #program_name, t_end, prog_delta = "programs\\Figure_jump_conditional_true.txt", 120, 0.1
     #program_name, t_end, prog_delta = "programs\\Figure_if_true.txt", 120, 0.1
     #program_name, t_end, prog_delta = "programs\\Figure_if_false.txt", 120, 0.1
-    program_name, t_end = "programs\\Figure_while.txt", 180
+    program_name, t_end = "programs\\test.txt", 100
 
-    plot_multi = True
+    plot_multi = False
 
     params_prog  = prog_alpha, prog_delta, prog_n, prog_Kd
 
@@ -169,9 +169,9 @@ if __name__ == '__main__':
     # other params - outputs of GA
 
     #points = np.loadtxt('selected_points//selected_points_old.txt')[:3]
-    p31 = pickle.load(open("selected_points\\model3sample1.p", "rb"))      
-    p32 = pickle.load(open("selected_points\\model3sample2.p", "rb"))      
-    p33 = pickle.load(open("selected_points\\model3sample3.p", "rb"))      
+    p31 = pickle.load(open("selected_points\\model1sample1.p", "rb"))
+    p32 = pickle.load(open("selected_points\\model1sample2.p", "rb"))
+    p33 = pickle.load(open("selected_points\\model1sample3.p", "rb"))
     points = np.array([p31, p32, p33])
     
     #with plt.style.context('fivethirtyeight'):
