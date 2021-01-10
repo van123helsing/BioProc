@@ -300,8 +300,8 @@ def generate_model(program_name, output_name, n_bits, prog_alpha, prog_delta, pr
     for i in range(len(condition)):
         if condition[i]:
             if type(condition[i]) is tuple:
-                code.append("\tcond"+str(i)+"="+condition[i][0]+"\n")
-                code.append("\tcond"+str(i)+"="+condition[i][1]+"\n")
+                code.append("\tcond"+str(i)+"0="+condition[i][0]+"\n")
+                code.append("\tcond"+str(i)+"1="+condition[i][1]+"\n")
             else:
                 code.append("\tcond" + str(i) + "=" + condition[i] + "\n")
 
@@ -328,11 +328,11 @@ def generate_model(program_name, output_name, n_bits, prog_alpha, prog_delta, pr
                     #inhibition
                     if type(cond) is tuple:
                         if r:
-                            str_R_inputs += "inhibition(" + r + ","+ cond[0]  + ", KD_cond),"
-                            str_R_inputs += "inhibition(" + r + ","+ cond[1]  + ", KD_cond),"
+                            str_R_inputs += "inhibition(" + r + ", cond"+ str(i) + "0, KD_cond),"
+                            str_R_inputs += "inhibition(" + r + ", cond"+ str(i) + "1, KD_cond),"
                         if s:
-                            str_S_inputs += "inhibition(" + s + ","+ cond[0]  + ", KD_cond),"
-                            str_S_inputs += "inhibition(" + s + ","+ cond[1]  + ", KD_cond),"
+                            str_S_inputs += "inhibition(" + s + ", cond"+ str(i) + "0, KD_cond),"
+                            str_S_inputs += "inhibition(" + s + ", cond"+ str(i) + "1, KD_cond),"
                         and_or_flag = cond[2]
                     else:
                         if r:
